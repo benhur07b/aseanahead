@@ -128,6 +128,40 @@ img { max-width: 100%; }
 
 .site-nav a[aria-current="page"] { background: var(--blue); color: var(--white); font-weight: 600; }
 
+/* nav dropdown — collapses Resources + FAQ into one menu (CSS-only, no JS) */
+.nav-drop { position: relative; }
+.nav-drop > summary {
+  list-style: none;
+  cursor: pointer;
+  color: var(--ink-soft);
+  font-size: 0.86rem;
+  font-weight: 500;
+  padding: 0.4rem 0.75rem;
+  border-radius: 999px;
+  transition: background 0.15s, color 0.15s;
+  user-select: none;
+}
+.nav-drop > summary::-webkit-details-marker { display: none; }
+.nav-drop > summary::after { content: " ▾"; font-size: 0.75em; }
+.nav-drop > summary:hover,
+.nav-drop[open] > summary { background: var(--blue-wash); color: var(--blue); }
+.nav-drop.current > summary { background: var(--blue); color: var(--white); font-weight: 600; }
+.nav-drop-menu {
+  position: absolute;
+  top: calc(100% + 6px);
+  right: 0;
+  background: var(--white);
+  border: 1px solid var(--blue-pale);
+  border-radius: 12px;
+  box-shadow: 0 8px 24px rgba(28, 76, 135, 0.14);
+  padding: 0.35rem;
+  min-width: 160px;
+  display: grid;
+  gap: 2px;
+  z-index: 60;
+}
+.nav-drop-menu a { display: block; }
+
 /* ---------- hero ---------- */
 
 .hero {
@@ -465,7 +499,13 @@ a.card:hover {
 
 .steps li:last-child::after { display: none; }
 
-.steps li strong { font-family: var(--font-display); font-size: 1.05rem; display: block; color: var(--blue-deep); }
+.steps li > strong { font-family: var(--font-display); font-size: 1.05rem; display: block; color: var(--blue-deep); }
+/* Emphasis utilities for lists/steps:
+   .strong-break  — the old <strong> behavior: title styling + forces its own line
+   .strong-inline — same title styling (font, size, color) but stays inline */
+.strong-break  { font-family: var(--font-display); font-size: 1rem; color: var(--blue-deep); display: block; font-weight: 700}
+.strong-inline { font-family: var(--font-display); font-size: 1rem; color: var(--blue-deep); display: inline; font-weight: 700}
+.steps li > strong.strong-inline { display: inline; }
 
 .steps li p { color: var(--ink-soft); font-size: 0.95rem; max-width: 60ch; }
 

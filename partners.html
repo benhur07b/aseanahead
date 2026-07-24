@@ -20,8 +20,14 @@
       <a href="champions.html">Champions</a>
       <a href="participants.html">Participants</a>
       <a href="partners.html" aria-current="page">Partners</a>
-      <a href="resources.html">Resources</a>
-      <a href="faq.html">FAQ</a>
+      <details class="nav-drop">
+        <summary>More</summary>
+        <div class="nav-drop-menu">
+          <a href="resources.html">Resources</a>
+          <a href="faq.html">FAQ</a>
+          <a href="resources.html#contacts">Contacts</a>
+        </div>
+      </details>
       <a class="nav-cta" href="join.html">Join Now</a>
     </nav>
   </div>
@@ -42,7 +48,11 @@
 <section>
   <div class="wrap">
     <p class="section-label" id="partner-types">Partner types</p>
-    <h2 class="section-title">Two ways to partner</h2>
+    <h2 class="section-title">Four ways to partner</h2>
+    <p class="prose" style="margin-bottom:1.2rem">
+      There's no fixed minimum to get started—tell us about your community and
+      your plans, and we'll find the right format together.
+    </p>
     <div class="card-grid">
       <div class="card">
         <span class="chip chip-partners">Institutional</span>
@@ -60,17 +70,30 @@
         <p>Host your own event: in your school, org, barangay, or community.
            You follow the same standard agenda and submit the same data as any
            other event, and qualify for financial support when your event meets
-           the minimum requirements.</p>
-         <div class="callout coral">
-          <strong>Financial support for community hosts: PhP 3,000 for every 50 participants
-          who successfully complete the course.</strong> Completion—all three
-          course requirements—is what counts, not attendance.
-        </div>
+           the minimum requirements—see
+           <a href="#how-support-is-counted">how support works</a>.</p>
+      </div>
+      <div class="card">
+        <span class="chip chip-partners">Bring a group</span>
+        <h3>Join a SmartCT event</h3>
+        <p>No event capacity of your own? Bring your members to one of our
+           scheduled webinars or in-person sessions instead. <strong>Declare your
+           group before the event</strong>—through the event registration form or
+           a shared list—and their completions count toward the same host
+           support as a hosted event.</p>
+      </div>
+      <div class="card">
+        <span class="chip chip-partners">Guest slot</span>
+        <h3>Invite us to your event</h3>
+        <p>Already running an assembly, conference, or org meeting? Give us
+           <strong>15–25 minutes</strong>. We introduce the program, and your
+           people register for the next session—or the self-paced track—right
+           from their phones. Zero logistics for you beyond the time slot.</p>
       </div>
     </div>
     <!-- TODO: replace href="#" with the live partner registration form URL -->
     <div class="btn-row" style="margin-top:1.6rem">
-      <a class="btn btn-primary" href="#" data-tooltip="Tell us about your institution or community and the event you want to host.">Register as a partner</a>
+      <a class="btn btn-primary" href="#" data-tooltip="Tell us about your institution or community and the event you want to host.">Register as a partner <span class="tbd">coming soon</span></a>
     </div>
   </div>
 </section>
@@ -87,10 +110,137 @@
       <li>The <strong>standard agenda</strong> is followed</li>
       <li>A <strong>complete participant/beneficiary list</strong> is captured with all required fields</li>
       <li>Every participant is <strong>registered and enrolled on ADA before the event ends</strong></li>
-      <li>A <strong>facilitator or trained host</strong> is present and accountable for follow-up</li>
+      <li>A <a href="#partner-coordinator"><span class="strong-inline">Partner Coordinator</span></a> is present and accountable for follow-up</li>
       <li>Completion is <strong>tracked</strong> until each participant finishes or the cohort deadline passes</li>
       <li><strong>Post-event data</strong> (attendance, completions, photos/documentation) is submitted to the Program Officer</li>
     </ul>
+  </div>
+</section>
+
+<section>
+  <div class="wrap">
+    <p class="section-label" id="partner-coordinator">The Partner Coordinator</p>
+    <h2 class="section-title">One named person on your side—coordination, not teaching</h2>
+    <div class="two-col">
+      <div class="prose">
+        <p><strong>Every partner must name at least one Partner Coordinator/s</strong>—someone from your organization who is responsible for ensuring the completion of the course. The Partner Coordinator does not need to be a trainer nor an AI expert: the course teaches itself and the Coordinator's job is, as the name implies coordination.</p>
+        <p>The Partner Coordinator:</p>
+        <ul class="checklist coral">
+          <li>Gets participants <strong>pre-registered</strong> and captures the participant list</li>
+          <li>Keeps participants <strong>in the room (or on the call)</strong> through the agenda</li>
+          <li>Submits <strong>post-event data</strong>—attendance, completions, documentation</li>
+          <li>Stays the <strong>point of contact for follow-up</strong> until the cohort finishes or its window closes</li>
+        </ul>
+      </div>
+      <div class="prose">
+        <p><strong>We support you the whole way—light-touch, so the
+           Coordinator is never alone but never buried:</strong></p>
+        <ul class="checklist">
+          <li>An <strong>onboarding briefing</strong> before your first event</li>
+          <li>The <strong>standard agenda, slide deck, and materials</strong>—ready to use</li>
+          <li>A <strong>SmartCT contact </strong> for questions and technical hiccups</li>
+          <li>The <strong>Program Officer</strong> answering within days, not weeks</li>
+        </ul>
+      </div>
+    </div>
+  </div>
+</section>
+
+<section>
+  <div class="wrap">
+    <p class="section-label" id="how-support-is-counted">Financial support</p>
+    <h2 class="section-title">Host support—and how it's counted</h2>
+    <div class="callout coral" style="margin-bottom:1.2rem">
+      <strong>Financial support for hosts:</strong> PhP 3,000 for every 50 participants
+      who successfully complete the course. Completion—all three
+      course requirements—is what counts, not attendance.
+    </div>
+    <p class="prose" style="margin-bottom:1.2rem">
+      <strong class="strong-inline">Scenario 1: Bringing your group to a SmartCT event</strong>
+    </p>
+    <ol class="steps">
+      <li>
+        <strong>You tell us you're coming</strong>
+        <p>Your student org decides to join the Saturday webinar together. You
+           let the Program Officer know—before the event—that your members are
+           joining as your group.</p>
+      </li>
+      <li>
+        <strong>Your group is declared before the event</strong>
+        <p>Your members register through the event's registration form and
+           select your organization, or you share your group's list with the
+           Program Officer ahead of time. Either way works—what matters is that
+           it happens <strong>before</strong> the event.</p>
+      </li>
+      <li>
+        <strong>They attend and complete</strong>
+        <p>Your members go through the training and finish all three completion
+           requirements. Completion is verified on the ADA platform—never
+           self-reported. As a partner, it is <span class="strong-inline">your responsibility to ensure your participants complete the course</span> in order to qualify for the financial support. This is why the <a href="#partner-coordinator"><span class="strong-inline">Partner
+           Coordinator</span></a> is very important.</p> 
+      </li>
+      <li>
+        <strong>Every completion adds up</strong>
+        <p>Each verified completion from your group joins your running
+           total—and the total <strong>accrues across all your events and
+           groups</strong>, so a small event this month and a group next month
+           count together.</p>
+      </li>
+      <li>
+        <strong>Support is released per milestone</strong>
+        <p>Every 50 completions attributed to you: PhP 3,000 in host support.
+           The Program Officer walks you through liquidation and disbursement.</p>
+      </li>
+    </ol>
+    <div class="callout coral" style="margin-top:1.2rem">
+      <strong>Declare before, not after.</strong> Groups count when they're
+      declared before the event—via the registration form or a shared list.
+      Lists sent after an event can't be credited. This keeps support fair and
+      verifiable for every partner.
+    </div>
+
+    <p class="prose" style="margin:2rem 0 1.2rem">
+      <strong class="strong-inline">Scenario 2: Hosting your own event</strong>
+    </p>
+    <ol class="steps">
+      <li>
+        <strong>You plan an event that qualifies</strong>
+        <p>Your org sets a date, books the venue (or the call), names its
+           <a href="#partner-coordinator"><span class="strong-inline">Partner
+           Coordinator</span></a>, and pre-registers participants—meeting the
+           <a href="#the-bar-to-clear">six minimum requirements</a>. SmartCT
+           briefs your Coordinator and hands over the standard agenda and
+           materials.</p>
+      </li>
+      <li>
+        <strong>You run it to standard</strong>
+        <p>Your team runs the standard agenda; every participant is registered
+           and enrolled on ADA <strong>before the event ends</strong>, with a
+           SmartCT contact on hand for questions.</p>
+      </li>
+      <li>
+        <strong>You follow up until they finish</strong>
+        <p>This is the part that earns the support: if not everyone completes on
+           the day then <span class="strong-inline">the follow-up is yours</span>. Your
+           Coordinator tracks who's unfinished—with light-touch support from us—until each participant completes or
+           the cohort window closes.</p>
+      </li>
+      <li>
+        <strong>Completions accrue, support is released</strong>
+        <p>Verified completions from your event join the same running total as
+           your groups, and every 50 releases PhP 3,000—so the follow-up work
+           in step 3 is exactly what turns attendance into support.</p>
+      </li>
+    </ol>
+    <div class="callout coral" style="margin-top:1.2rem">
+      <strong>Your participants, your completions.</strong> A partner is always
+      accountable for the completion of its own participants—hosting the event
+      is half the job; carrying your people to the finish line is the other
+      half. Support is paid on completions, never attendance, so an event
+      without follow-up earns nothing. SmartCT backs you up with templates,
+      check-in scripts, and a contact who answers—but the accountability stays
+      with you.
+    </div>
   </div>
 </section>
 
@@ -108,7 +258,8 @@
       <li>
         <strong>Onboard as a partner</strong>
         <p>Agreement or endorsement as needed (MOA for institutions), an
-           onboarding call, and the branding and communications guidelines.</p>
+           onboarding call, the branding and communications guidelines—and you
+           name your <a href="#partner-coordinator"><span class="strong-inline">Partner Coordinator</span></a>.</p>
       </li>
       <li>
         <strong>Plan the event</strong>
@@ -119,9 +270,12 @@
       </li>
       <li>
         <strong>Run it to standard</strong>
-        <p>The facilitator runs the standard agenda; you handle logistics and keep
-           participants in the room (or on the call). Capture attendance and
-           photos for documentation.</p>
+        <p>The standard agenda is run by our facilitator (SmartCT-hosted events)
+           or by your team with our materials (self-hosted). Your
+           <a href="#partner-coordinator"><span class="strong-inline">Partner Coordinator</span></a> handles logistics, keeps
+           participants in the room (or on the call), and captures attendance
+           and photos for documentation—with a SmartCT contact on hand for
+           questions.</p>
       </li>
       <li>
         <strong>Report and follow through</strong>

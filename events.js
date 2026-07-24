@@ -11,5 +11,5 @@
  *   - wrap a field in double quotes if it contains a comma
  */
 window.EVENTS_CSV = `date,time,title,modality,venue,city,host,register_url,notes
-2026-12-31,Anytime,Self-Paced Track — AI Career Readiness,Self-paced,ADA platform,Online,SmartCT, https://ada.aseanfoundation.org/course-detail/ai-career-readiness, Start and finish whenever you're ready. Expect regular facilitator check-ins.
+2026-12-31,Anytime,Self-Paced Track — AI Career Readiness,Self-paced,ADA platform,Online,SmartCT, https://ada.aseanfoundation.org/course-detail/ai-career-readiness, Start and finish whenever you're ready. Expect regular check-ins from our champions.
 `;
