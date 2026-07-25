@@ -91,7 +91,8 @@
     <h2 class="section-title">Can't make any event? Go self-paced.</h2>
     <p class="prose" style="margin-bottom:1.2rem">
       The self-paced track is open for the entire programme. Sign up whenever you're ready and complete the
-      course at your own pace (preferred within 1 month), with a facilitator backing you until you finish.
+      course at your own pace—ideally within 7 days, and within 21 days at the
+      latest—with a facilitator backing you until you finish.
     </p>
     <div class="btn-row" id="selfpaced-cta" style="margin-bottom:1.6rem" hidden></div>
     <ol class="steps">
@@ -115,8 +116,9 @@
       </li>
       <li>
         <strong>Expect check-ins until you're done</strong>
-        <p>A champion will check in with you regularly.
-           Aim to finish within your 2-4 weeks upon starting.</p>
+        <p>A champion will check in with you regularly—most actively during
+           your first week. Aim to finish within 7 days of starting; the
+           window closes at 21 days.</p>
       </li>
       <li>
         <strong>Stuck? We're here to help</strong>
@@ -168,13 +170,15 @@
       <p>
         <a href="https://ada.aseanfoundation.org/">ASEAN Digital Academy</a><br>
         <a href="https://ada.aseanfoundation.org/course-detail/ai-career-readiness">AI Career Readiness Course</a><br>
-        <a href="resources.html">Templates &amp; downloads</a>
+        <a href="participants.html#getting-started">Taking the course</a>
       </p>
     </div>
     <div>
       <h4>Need help?</h4>
-      <p>Contact the Program Officer through the official program channels.
-         Escalation directory is in <a href="resources.html">Resources</a>.</p>
+      <p>
+        <a href="faq.html">Participants</a><br>
+        <a href="resources.html#contacts">Champions and Partners</a>
+      </p>
     </div>
     <p class="fine">
       <a href="https://ada.aseanfoundation.org/asean-ahead" target="_blank" rel="noopener">ASEAN AHEAD</a>
@@ -199,6 +203,9 @@
     'Hybrid':       { chip: 'chip-hybrid' },
     'Self-paced':   { chip: 'chip-selfpaced' },
   });
+  // The columns the page uses. The header row of whichever CSV loads decides
+  // where each one lives, so the sheet may reorder columns or carry extra
+  // bookkeeping columns (e.g. id) without breaking parsing.
   const COLUMNS = ['date', 'time', 'title', 'modality', 'venue', 'city', 'host', 'register_url', 'notes'];
 
   // Minimal CSV parser with quoted-field support.
@@ -221,10 +228,11 @@
   }
 
   // A record either becomes a fully valid event or is rejected whole.
-  function toEvent(record, lineNo) {
-    if (record.length !== COLUMNS.length)
-      return { err: `line ${lineNo}: expected ${COLUMNS.length} columns, got ${record.length}` };
-    const e = Object.fromEntries(COLUMNS.map((k, i) => [k, record[i].trim()]));
+  // `at` maps each needed column name to its position in this CSV's header.
+  function toEvent(record, at, width, lineNo) {
+    if (record.length !== width)
+      return { err: `line ${lineNo}: expected ${width} columns, got ${record.length}` };
+    const e = Object.fromEntries(COLUMNS.map(k => [k, record[at[k]].trim()]));
     if (!/^\d{4}-\d{2}-\d{2}$/.test(e.date) || isNaN(Date.parse(e.date)))
       return { err: `line ${lineNo}: bad date "${e.date}" (need YYYY-MM-DD)` };
     if (!(e.modality in MODALITIES))
@@ -233,11 +241,22 @@
     return { event: e };
   }
 
-  const parsed = parseCSV(window.EVENTS_CSV ?? '').slice(1)
-    .map((r, i) => toEvent(r, i + 2));
-  const events = parsed.filter(p => p.event).map(p => p.event)
-    .sort((a, b) => a.date.localeCompare(b.date));
-  const errors = parsed.filter(p => p.err).map(p => p.err);
+  function buildEvents(csv) {
+    const [header = [], ...records] = parseCSV(csv);
+    const names = header.map(h => h.trim().toLowerCase());
+    const missing = COLUMNS.filter(c => !names.includes(c));
+    if (missing.length)
+      return { events: [], errors: [`the header row is missing the ${missing.join(', ')} column${missing.length === 1 ? '' : 's'}`] };
+    const at = Object.fromEntries(COLUMNS.map(c => [c, names.indexOf(c)]));
+    const parsed = records.map((r, i) => toEvent(r, at, header.length, i + 2));
+    return {
+      events: parsed.filter(p => p.event).map(p => p.event)
+        .sort((a, b) => a.date.localeCompare(b.date)),
+      errors: parsed.filter(p => p.err).map(p => p.err),
+    };
+  }
+
+  let events = [];
 
   const state = { modality: 'all', when: 'upcoming', q: '' };
   const list = document.getElementById('event-list');
@@ -313,27 +332,60 @@
   };
   window.addEventListener('hashchange', applyHash);
 
-  // The self-paced section's Register button comes from the Self-paced row in
-  // events.js, so the link lives in exactly one place.
-  const selfPaced = events.findLast(e => e.modality === 'Self-paced' && e.register_url);
-  if (selfPaced) {
-    const cta = document.getElementById('selfpaced-cta');
-    cta.hidden = false;
-    cta.innerHTML = `<a class="btn btn-primary" href="${esc(selfPaced.register_url)}"
-      target="_blank" rel="noopener">Register for the self-paced track</a>`;
-  }
   document.getElementById('event-search').addEventListener('input', e => {
     state.q = e.target.value;
     render();
   });
 
-  if (errors.length) {
-    const el = document.getElementById('event-error');
-    el.hidden = false;
-    el.textContent = `${errors.length} event entr${errors.length === 1 ? 'y' : 'ies'} in events.js could not be read and ${errors.length === 1 ? 'is' : 'are'} not shown—${errors.join('; ')}.`;
+  const localSource = () => ({ csv: window.EVENTS_CSV ?? '', name: 'events.js', note: '' });
+
+  // 'sheet' reads the published Google Sheet; anything else reads events.js.
+  // Every sheet failure mode—unreachable, non-200, or a response with no valid
+  // rows—falls back to the local CSV with a visible note, so the schedule never
+  // renders empty and never shows stale events silently.
+  async function loadSource() {
+    if (window.EVENTS_SOURCE !== 'sheet') return localSource();
+    try {
+      const res = await fetch(window.EVENTS_SHEET_URL);
+      if (!res.ok) throw new Error(`HTTP ${res.status}`);
+      return { csv: await res.text(), name: 'the events sheet', note: '' };
+    } catch {
+      return { ...localSource(), note: 'The live events sheet could not be reached—showing the last published schedule instead.' };
+    }
   }
-  applyHash();
-  render();
+
+  loadSource().then(({ csv, name, note }) => {
+    let built = buildEvents(csv);
+    if (!built.events.length && name !== 'events.js') {
+      built = buildEvents(window.EVENTS_CSV ?? '');
+      name = 'events.js';
+      note = 'The live events sheet had no readable rows—showing the last published schedule instead.';
+    }
+    events = built.events;
+
+    // The self-paced section's Register button comes from the Self-paced row in
+    // the event data, so the link lives in exactly one place.
+    const selfPaced = events.findLast(e => e.modality === 'Self-paced' && e.register_url);
+    if (selfPaced) {
+      const cta = document.getElementById('selfpaced-cta');
+      cta.hidden = false;
+      cta.innerHTML = `<a class="btn btn-primary" href="${esc(selfPaced.register_url)}"
+        target="_blank" rel="noopener">Register for the self-paced track</a>`;
+    }
+
+    const problems = [];
+    if (note) problems.push(note);
+    if (built.errors.length)
+      problems.push(`${built.errors.length} event entr${built.errors.length === 1 ? 'y' : 'ies'} in ${name} could not be read and ${built.errors.length === 1 ? 'is' : 'are'} not shown—${built.errors.join('; ')}.`);
+    if (problems.length) {
+      const el = document.getElementById('event-error');
+      el.hidden = false;
+      el.textContent = problems.join(' ');
+    }
+
+    applyHash();
+    render();
+  });
 })();
 </script>
 
