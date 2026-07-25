@@ -18,6 +18,6 @@
 window.PROGRESS_CSV = `category,target,female,male,others
 University Students,2475,26,21,2
 TVET Students,675,0,1,0
-NEET Youth,675,5,2,0
+NEET Youth,675,6,2,0
 Other Youth,675,2,3,2
 `;
