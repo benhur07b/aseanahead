@@ -791,7 +791,7 @@ details.faq-item .tag {
 
 .geo-band {
   height: 76px;
-  background: url('assets/geo-band.png') left bottom repeat-x;
+  background: url('../img/geo-band.png') left bottom repeat-x;
   background-size: auto 100%;
 }
 

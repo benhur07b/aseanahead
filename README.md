@@ -18,8 +18,9 @@ Champions running one, and partners hosting one.
 | `resources.html` | All roles | Templates, platform links, branding, contacts (many still TBD) |
 | `faq.html` | Everyone | Combined FAQ, filterable by audience |
 
-Supporting files: `styles.css` (one shared stylesheet), `events.js` (event
-schedule data), `assets/` (logos and images).
+Static content lives under `static/assets/`: `css/styles.css` (one shared
+stylesheet), `js/events.js` (event schedule data) and `js/progress.js`
+(progress tracker data), `img/` (logos and images).
 
 ## Preview
 
@@ -33,7 +34,7 @@ No build step and no dependencies — everything runs from these files as-is.
 
 ## Editing the event schedule
 
-`join.html` reads its schedule from `events.js`. Edit only the CSV between the
+`join.html` reads its schedule from `static/assets/js/events.js`. Edit only the CSV between the
 backticks; the surrounding JavaScript is a one-line wrapper that lets the data
 load when the page is opened straight from disk.
 
