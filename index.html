@@ -186,6 +186,88 @@
   </div>
 </section>
 
+<section>
+  <div class="wrap">
+    <p class="section-label" id="after-the-course">After the course</p>
+    <h2 class="section-title">Finishing opens doors—it doesn't hand them to you</h2>
+    <div class="prose">
+      <p>
+        Completion is the entry ticket to everything below. The first two
+        pathways take a select number of completers, so treat the course as the
+        start of your application, not the end of the programme.
+      </p>
+    </div>
+    <div class="card-grid">
+      <a class="card" href="participants.html#after-the-course">
+        <span class="chip chip-neutral">Selective</span>
+        <h3>Peer Mentorship</h3>
+        <p>A guided mentorship component for 120+ high-performing or
+           high-potential completers—practical career coaching from people
+           already working in the field.</p>
+        <span class="card-cta">See how selection works →</span>
+      </a>
+      <a class="card" href="participants.html#after-the-course">
+        <span class="chip chip-neutral">Selective</span>
+        <h3>Virtual Job Fairs</h3>
+        <p>Online hiring events connecting a shortlist of completers with
+           employers looking for AI-ready entry-level talent.</p>
+        <span class="card-cta">See how selection works →</span>
+      </a>
+      <a class="card" href="champions.html">
+        <span class="chip chip-facilitators">Open to all completers</span>
+        <h3>Become a Champion</h3>
+        <p>Run your own training events and bring the course to your school,
+           barangay, or organization. Every completer can step up.</p>
+        <span class="card-cta">Read the Champion's Guide →</span>
+      </a>
+    </div>
+  </div>
+</section>
+
+<section>
+  <div class="wrap">
+    <p class="section-label" id="progress">Programme progress</p>
+    <h2 class="section-title">Course completions</h2>
+    <div class="two-col">
+      <div class="progress-panel">
+        <h3>Course completions to date</h3>
+        <p class="progress-legend" aria-hidden="true">
+          <span class="key g-female"></span> Female
+          <span class="key g-male"></span> Male
+          <span class="key g-others"></span> Others (non-binary, rather not say, etc.)
+        </p>
+        <div id="progress-list"></div>
+        <div class="progress-total" id="progress-total"></div>
+        <p class="progress-fine">
+          Per-category bars show the gender split within that category, not
+          progress toward its target; the bar under <em>All</em> is the one
+          measured against the 4,500 target.
+          Counters draw from verified completion data and are updated
+          regularly. Figures reflect the last data refresh, not live sign-ups.
+          Gender options match the pre- and post-course assessments, where
+          <em>others</em> covers non-binary and "rather not say" responses.
+        </p>
+        <p class="progress-fine err" id="progress-error" hidden></p>
+      </div>
+      <div class="prose">
+        <p>
+          This dashboard tracks verified course completions against the
+          Philippine programme's target of <strong>4,500 beneficiaries</strong>
+          by 31 December 2026.
+        </p>
+        <div class="callout teal">
+          <strong>Inclusive by design.</strong> SmartCT does not treat reach as a
+          headcount. We commit to at least <strong>55%</strong> participation
+          from people who identify as women, non-binary, or another gender; at
+          least <strong>50%</strong> of beneficiaries from outside Metro Manila;
+          and <strong>deliberate outreach to communities historically kept at the
+          margins of tech</strong>.
+        </div>
+      </div>
+    </div>
+  </div>
+</section>
+
 </main>
 
 <div class="partner-bar">
@@ -239,6 +321,111 @@
     </p>
   </div>
 </footer>
+
+<script src="progress.js"></script>
+<script>
+(() => {
+  const COLUMNS = ['category', 'target', 'female', 'male', 'others'];
+  const GENDERS = ['female', 'male', 'others'];   // as collected in the assessments
+
+  // Minimal CSV parser with quoted-field support.
+  function parseCSV(text) {
+    const rows = [[]];
+    let field = '', inQuotes = false;
+    for (let i = 0; i < text.length; i++) {
+      const c = text[i];
+      if (inQuotes) {
+        if (c === '"' && text[i + 1] === '"') { field += '"'; i++; }
+        else if (c === '"') inQuotes = false;
+        else field += c;
+      } else if (c === '"') inQuotes = true;
+      else if (c === ',') { rows.at(-1).push(field); field = ''; }
+      else if (c === '\n') { rows.at(-1).push(field); field = ''; rows.push([]); }
+      else if (c !== '\r') field += c;
+    }
+    rows.at(-1).push(field);
+    return rows.filter(r => r.length > 1 || r[0].trim() !== '');
+  }
+
+  // A record either becomes a fully valid row or is rejected whole—a partial
+  // row would understate progress without anyone noticing.
+  function toRow(record, lineNo) {
+    if (record.length !== COLUMNS.length)
+      return { err: `line ${lineNo}: expected ${COLUMNS.length} columns, got ${record.length}` };
+    const r = Object.fromEntries(COLUMNS.map((k, i) => [k, record[i].trim()]));
+    if (!r.category) return { err: `line ${lineNo}: missing category` };
+    for (const k of ['target', ...GENDERS]) {
+      if (!/^\d+$/.test(r[k])) return { err: `line ${lineNo}: ${k} must be a whole number, got "${r[k]}"` };
+      r[k] = Number(r[k]);
+    }
+    if (r.target === 0) return { err: `line ${lineNo}: target must be greater than 0` };
+    return { row: r };
+  }
+
+  const parsed = parseCSV(window.PROGRESS_CSV ?? '').slice(1)
+    .map((r, i) => toRow(r, i + 2));
+  const rows = parsed.filter(p => p.row).map(p => p.row);
+  const errors = parsed.filter(p => p.err).map(p => p.err);
+
+  const esc = s => String(s).replace(/[&<>"']/g,
+    c => ({'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;',"'":'&#39;'}[c]));
+  const fmt = n => n.toLocaleString('en-PH');
+  const pct = (n, of) => Math.min(100, (n / of) * 100);
+
+  const sum = r => GENDERS.reduce((s, g) => s + r[g], 0);
+
+  // Two different bars, deliberately. A per-category bar shows the gender
+  // *composition* of that category and always fills the track, because early in
+  // the programme a bar scaled to target is a sliver that reads as "nothing
+  // here". The single bar under the total is the real progress bar.
+  const segments = (r, of) =>
+    GENDERS.map(g => `<span class="g-${g}" style="width:${pct(r[g], of)}%"></span>`).join('');
+
+  const breakdown = r => GENDERS.map(g => `${fmt(r[g])} ${g}`).join(', ');
+
+  document.getElementById('progress-list').innerHTML = rows.map(r => {
+    const done = sum(r);
+    return `
+    <div class="progress-item">
+      <div class="plabel">
+        <span>${esc(r.category)}
+          <small>${GENDERS.map(g => `${fmt(r[g])} ${g}`).join(' · ')}</small></span>
+        <b>${fmt(done)}</b>
+      </div>
+      <div class="pbar${done ? '' : ' is-empty'}"
+           role="img" aria-label="${done
+             ? `${esc(r.category)}: ${fmt(done)} trained—${breakdown(r)}`
+             : `${esc(r.category)}: no completions recorded yet`}">
+        ${done ? segments(r, done) : ''}
+      </div>
+    </div>`;
+  }).join('');
+
+  if (rows.length) {
+    const done = rows.reduce((s, r) => s + sum(r), 0);
+    const target = rows.reduce((s, r) => s + r.target, 0);
+    const all = Object.fromEntries(GENDERS.map(g => [g, rows.reduce((s, r) => s + r[g], 0)]));
+    const share = (done / target) * 100;
+    document.getElementById('progress-total').innerHTML = `
+      <div class="plabel">
+        <span>All<small>${GENDERS.map(g => `${fmt(all[g])} ${g}`).join(' · ')}</small></span>
+        <b>${fmt(done)} / ${fmt(target)}</b>
+      </div>
+      <div class="pbar total${done ? '' : ' is-empty'}"
+           role="img" aria-label="${fmt(done)} of ${fmt(target)} beneficiaries trained${done ? `—${breakdown(all)}` : ''}">
+        ${done ? segments(all, target) : ''}
+      </div>
+      <p class="progress-pct">${share < 0.1 && done > 0 ? '<0.1' : share.toFixed(1)}%
+         of the ${fmt(target)} target</p>`;
+  }
+
+  if (errors.length) {
+    const el = document.getElementById('progress-error');
+    el.hidden = false;
+    el.textContent = `${errors.length} row${errors.length === 1 ? '' : 's'} in progress.js could not be read and ${errors.length === 1 ? 'is' : 'are'} not shown—${errors.join('; ')}.`;
+  }
+})();
+</script>
 
 </body>
 </html>

@@ -12,7 +12,7 @@ Champions running one, and partners hosting one.
 | `join.html` | Participants | Filterable schedule of upcoming events, plus the self-paced track |
 | `participants.html` | Participants | Perks, step-by-step journey, the three completion requirements |
 | `champions.html` | Champions | Role, delivery modes, standard two-part agenda, lifecycle, facilitator checklist, data handling |
-| `delivery-modes/synchronous.html` | Champions | Running a live session: staffing, weekly run-up, Part 1 exit point, close-out |
+| `delivery-modes/synchronous.html` | Champions | Running a live session: staffing, pre-session preconditions, Part 1 exit point, close-out |
 | `delivery-modes/asynchronous.html` | Champions | Self-paced follow-up playbook: Day 0–28 sequence, triage lanes, weekly routine |
 | `partners.html` | Partners & hosts | Partner types, PhP 3,000 / 50 completions support, minimum requirements, process |
 | `resources.html` | All roles | Templates, platform links, branding, contacts (many still TBD) |

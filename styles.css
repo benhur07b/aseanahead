@@ -979,3 +979,125 @@ details.faq-item .tag {
 .chip-ok { background: var(--blue); }
 .chip-warn { background: var(--sky); color: var(--blue-deep); }
 .chip-stop { background: var(--red); }
+
+/* ---------- progress tracker ---------- */
+
+.progress-panel {
+  background: var(--white);
+  border: 1.5px solid var(--blue-pale);
+  border-radius: var(--radius);
+  padding: 1.4rem 1.5rem 1.2rem;
+  box-shadow: 0 4px 12px rgba(40, 104, 178, 0.07);
+}
+
+.progress-panel > h3 {
+  font-size: 1.1rem;
+  color: var(--blue-deep);
+  margin: 0;
+}
+
+.progress-legend {
+  display: flex;
+  align-items: center;
+  gap: 0.4rem;
+  font-size: 0.75rem;
+  color: var(--ink-soft);
+  margin: 0.5rem 0 1.2rem;
+}
+
+.progress-legend .key {
+  width: 12px;
+  height: 12px;
+  border-radius: 3px;
+  background: var(--blue);
+}
+
+.progress-legend .g-male,
+.progress-legend .g-others { margin-left: 0.7rem; }
+
+.progress-item + .progress-item { margin-top: 1.1rem; }
+
+.plabel {
+  display: flex;
+  justify-content: space-between;
+  align-items: baseline;
+  gap: 1rem;
+  margin-bottom: 0.4rem;
+}
+
+.plabel span { font-size: 0.95rem; color: var(--ink); }
+
+.plabel small {
+  display: block;
+  font-size: 0.75rem;
+  color: var(--ink-soft);
+}
+
+.plabel b {
+  font-family: var(--font-display);
+  font-weight: 700;
+  font-size: 0.95rem;
+  color: var(--blue-deep);
+  white-space: nowrap;
+}
+
+.pbar {
+  display: flex;
+  height: 12px;
+  border-radius: 999px;
+  background: var(--blue-wash);
+  border: 1px solid var(--blue-pale);
+  overflow: hidden;
+}
+
+/* Colour encodes gender and nothing else, so every bar uses the same three
+   tones—a per-category palette would make the same tone mean a different thing
+   in each row. The hairline keeps adjacent segments legible when both are thin. */
+.pbar > span { background: var(--blue); transition: width 0.4s ease; }
+.pbar > span + span { box-shadow: inset 1px 0 0 var(--white); }
+
+.g-male   { opacity: 0.55; }
+.g-others { opacity: 0.28; }
+
+/* Nothing reported yet: an empty track, not a zero-width fill nobody can see. */
+.pbar.is-empty {
+  background: repeating-linear-gradient(
+    -45deg, var(--blue-wash) 0 5px, var(--white) 5px 10px);
+}
+
+
+.progress-total {
+  margin-top: 1.3rem;
+  padding-top: 1rem;
+  border-top: 1.5px solid var(--blue-pale);
+}
+
+.progress-total .plabel span { font-weight: 600; }
+
+.progress-total b {
+  font-family: var(--font-display);
+  font-weight: 800;
+  font-size: 1.05rem;
+  color: var(--blue-deep);
+  white-space: nowrap;
+}
+
+/* The only bar on the panel scaled to a target, so it gets the extra height. */
+.pbar.total { height: 16px; }
+
+.progress-pct {
+  font-family: var(--font-display);
+  font-weight: 700;
+  font-size: 0.78rem;
+  color: var(--ink-soft);
+  margin-top: 0.4rem;
+}
+
+.progress-fine {
+  font-size: 0.78rem;
+  color: var(--ink-soft);
+  margin-top: 1rem;
+  line-height: 1.5;
+}
+
+.progress-fine.err { color: var(--red); font-weight: 600; }
