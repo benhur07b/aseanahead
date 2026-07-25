@@ -1,7 +1,7 @@
-# ASEAN AHEAD Training Guide — Website
+# ASEAN AHEAD Guide — Website
 
-Static site for the ASEAN AHEAD AI Career Readiness training guide in the
-Philippines. It is the single reference for participants joining a training,
+Static site for the ASEAN AHEAD AI Career Readiness Course guide in the
+Philippines. It is the single reference for participants joining an event,
 Champions running one, and partners hosting one.
 
 ## Pages
