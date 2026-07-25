@@ -16,6 +16,8 @@
 <meta property="og:image:height" content="630">
 <meta property="og:image:alt" content="ASEAN AHEAD card: AI career readiness course for Filipino youth.">
 <meta name="twitter:card" content="summary_large_image">
+<link rel="icon" href="favicon.ico" sizes="48x48 32x32 16x16">
+<link rel="apple-touch-icon" href="apple-touch-icon.png">
 <link rel="stylesheet" href="static/assets/css/styles.css">
 </head>
 <body>
@@ -373,10 +375,13 @@
     return { row: r };
   }
 
-  const parsed = parseCSV(window.PROGRESS_CSV ?? '').slice(1)
-    .map((r, i) => toRow(r, i + 2));
-  const rows = parsed.filter(p => p.row).map(p => p.row);
-  const errors = parsed.filter(p => p.err).map(p => p.err);
+  function build(csvText) {
+    const parsed = parseCSV(csvText ?? '').slice(1).map((r, i) => toRow(r, i + 2));
+    return {
+      rows: parsed.filter(p => p.row).map(p => p.row),
+      errors: parsed.filter(p => p.err).map(p => p.err),
+    };
+  }
 
   const esc = s => String(s).replace(/[&<>"']/g,
     c => ({'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;',"'":'&#39;'}[c]));
@@ -394,6 +399,7 @@
 
   const breakdown = r => GENDERS.map(g => `${fmt(r[g])} ${g}`).join(', ');
 
+  function render(rows, errors, sourceName, note) {
   document.getElementById('progress-list').innerHTML = rows.map(r => {
     const done = sum(r);
     return `
@@ -430,11 +436,43 @@
          of the ${fmt(target)} target</p>`;
   }
 
-  if (errors.length) {
+  const problems = [];
+  if (note) problems.push(note);
+  if (errors.length)
+    problems.push(`${errors.length} row${errors.length === 1 ? '' : 's'} in ${sourceName} could not be read and ${errors.length === 1 ? 'is' : 'are'} not shown—${errors.join('; ')}.`);
+  if (problems.length) {
     const el = document.getElementById('progress-error');
     el.hidden = false;
-    el.textContent = `${errors.length} row${errors.length === 1 ? '' : 's'} in progress.js could not be read and ${errors.length === 1 ? 'is' : 'are'} not shown—${errors.join('; ')}.`;
+    el.textContent = problems.join(' ');
   }
+  }
+
+  const localSource = () => ({ csv: window.PROGRESS_CSV, name: 'progress.js', note: '' });
+
+  // 'sheet' reads the published Google Sheet; anything else reads progress.js.
+  // Every sheet failure mode—unreachable, non-200, or a response with no valid
+  // rows—falls back to the local CSV with a visible note, so the panel never
+  // renders empty and never shows stale numbers silently.
+  async function loadSource() {
+    if (window.PROGRESS_SOURCE !== 'sheet') return localSource();
+    try {
+      const res = await fetch(window.PROGRESS_SHEET_URL);
+      if (!res.ok) throw new Error(`HTTP ${res.status}`);
+      return { csv: await res.text(), name: 'the progress sheet', note: '' };
+    } catch {
+      return { ...localSource(), note: 'The live progress sheet could not be reached—showing the last published numbers instead.' };
+    }
+  }
+
+  loadSource().then(({ csv, name, note }) => {
+    let { rows, errors } = build(csv);
+    if (!rows.length && name !== 'progress.js') {
+      ({ rows, errors } = build(window.PROGRESS_CSV));
+      name = 'progress.js';
+      note = 'The live progress sheet had no readable rows—showing the last published numbers instead.';
+    }
+    render(rows, errors, name, note);
+  });
 })();
 </script>
 
