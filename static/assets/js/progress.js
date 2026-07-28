@@ -27,8 +27,8 @@ window.PROGRESS_SOURCE = 'sheet';
 window.PROGRESS_SHEET_URL = 'https://docs.google.com/spreadsheets/d/e/2PACX-1vQyzECunprHBFcHi_Xsd64BwXchQlMTJT0IAbZXcMHPPtLgIY5Vh6eHzrg_r9gLohc1-9qqvnmoGNOc/pub?gid=0&single=true&output=csv';
 
 window.PROGRESS_CSV = `category,target,female,male,others
-University Students,2475,26,21,20
+University Students,2475,30,28,2
 TVET Students,675,0,1,0
-NEET Youth,675,6,2,0
-Other Youth,675,2,3,2
+NEET Youth,675,5,2,0
+Other Youth,675,2,3,1
 `;
