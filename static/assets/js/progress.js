@@ -10,7 +10,9 @@
  * the columns of both sources are identical.
  *
  * Edit ONLY the CSV between the backticks. One beneficiary category per line.
- * Columns: category,target,female,male,others
+ * Columns are matched by header name, so their order doesn't matter and extra
+ * columns (e.g. a bookkeeping id) are ignored. The page needs:
+ *   category,target,female,male,others
  *   - category: the beneficiary segment as reported to the ASEAN Foundation
  *   - target: the committed number of beneficiaries for that segment
  *   - female, male, others: verified completions per gender. The three options

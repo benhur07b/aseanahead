@@ -240,34 +240,54 @@
 <section>
   <div class="wrap">
     <p class="section-label" id="progress">Programme progress</p>
-    <h2 class="section-title">Course completions</h2>
+    <h2 class="section-title">Course takers and completions</h2>
     <div class="two-col">
-      <div class="progress-panel">
-        <h3>Course completions to date</h3>
-        <p class="progress-legend" aria-hidden="true">
-          <span class="key g-female"></span> Female
-          <span class="key g-male"></span> Male
-          <span class="key g-others"></span> Others (non-binary, rather not say, etc.)
-        </p>
-        <div id="progress-list"></div>
-        <div class="progress-total" id="progress-total"></div>
-        <p class="progress-fine">
-          Per-category bars show the gender split within that category, not
-          progress toward its target; the bar under <em>All</em> is the one
-          measured against the 4,500 target.
-          Counters draw from verified completion data and are updated
-          regularly. Figures reflect the last data refresh, not live sign-ups.
-          Gender options match the pre- and post-course assessments, where
-          <em>others</em> covers non-binary and "rather not say" responses.
-        </p>
-        <p class="progress-fine err" id="progress-error" hidden></p>
-      </div>
-      <div class="prose">
-        <p>
+      <div>
+        <div class="progress-panel">
+          <h3>Course completions to date</h3>
+          <p class="progress-legend" aria-hidden="true">
+            <span class="key g-female"></span> Female
+            <span class="key g-male"></span> Male
+            <span class="key g-others"></span> Others (non-binary, rather not say, etc.)
+          </p>
+          <div id="progress-list"></div>
+          <div class="progress-total" id="progress-total"></div>
+          <p class="progress-fine">
+            Per-category bars show the gender split within that category, not
+            progress toward its target; the bar under <em>All</em> is the one
+            measured against the 4,500 target.
+            Counters draw from verified completion data and are updated
+            regularly. Figures reflect the last data refresh, not live sign-ups.
+            Gender options match the pre- and post-course assessments, where
+            <em>others</em> covers non-binary and "rather not say" responses.
+          </p>
+          <p class="progress-fine err" id="progress-error" hidden></p>
+        </div>
+        <div class="callout gold">
           This dashboard tracks verified course completions against the
           Philippine programme's target of <strong>4,500 beneficiaries</strong>
           by 31 December 2026.
-        </p>
+        </div>
+      </div>
+      <div>
+        <div class="progress-panel">
+          <h3>Course takers to date</h3>
+          <p class="progress-legend" aria-hidden="true">
+            <span class="key g-female"></span> Female
+            <span class="key g-male"></span> Male
+            <span class="key g-others"></span> Others (non-binary, rather not say, etc.)
+          </p>
+          <div id="reach-list"></div>
+          <div class="progress-total" id="reach-total"></div>
+          <p class="progress-fine">
+            Course takers are everyone who has started the course, whether or
+            not they have finished it, so this count runs ahead of verified
+            completions. Bars show the gender split within each category and
+            across <em>All</em>; there is no per-category or overall target
+            here. Figures reflect the last data refresh, not live sign-ups.
+          </p>
+          <p class="progress-fine err" id="reach-error" hidden></p>
+        </div>
         <div class="callout teal">
           <strong>Inclusive by design.</strong> SmartCT does not treat reach as a
           headcount. We commit to at least <strong>50%</strong> participation
@@ -338,10 +358,34 @@
 </footer>
 
 <script src="static/assets/js/progress.js"></script>
+<script src="static/assets/js/progress-reach.js"></script>
 <script>
 (() => {
-  const COLUMNS = ['category', 'target', 'female', 'male', 'others'];
   const GENDERS = ['female', 'male', 'others'];   // as collected in the assessments
+
+  // Each panel is the same machinery over a different CSV shape. `target`
+  // present means the panel measures progress toward a committed number;
+  // absent means it only reports composition, so no target maths ever runs.
+  const PANELS = [
+    {
+      columns: ['category', 'target', 'female', 'male', 'others'],
+      listId: 'progress-list', totalId: 'progress-total', errorId: 'progress-error',
+      noun: 'trained',
+      localName: 'progress.js',
+      source: () => window.PROGRESS_SOURCE, sheetUrl: () => window.PROGRESS_SHEET_URL,
+      localCsv: () => window.PROGRESS_CSV,
+      sheetLabel: 'the progress sheet',
+    },
+    {
+      columns: ['category', 'female', 'male', 'others'],
+      listId: 'reach-list', totalId: 'reach-total', errorId: 'reach-error',
+      noun: 'course takers',
+      localName: 'progress-reach.js',
+      source: () => window.REACH_SOURCE, sheetUrl: () => window.REACH_SHEET_URL,
+      localCsv: () => window.REACH_CSV,
+      sheetLabel: 'the course-takers sheet',
+    },
+  ];
 
   // Minimal CSV parser with quoted-field support.
   function parseCSV(text) {
@@ -364,12 +408,13 @@
 
   // A record either becomes a fully valid row or is rejected whole—a partial
   // row would understate progress without anyone noticing.
-  function toRow(record, lineNo) {
-    if (record.length !== COLUMNS.length)
-      return { err: `line ${lineNo}: expected ${COLUMNS.length} columns, got ${record.length}` };
-    const r = Object.fromEntries(COLUMNS.map((k, i) => [k, record[i].trim()]));
+  // `at` maps each needed column name to its position in this CSV's header.
+  function toRow(record, at, width, lineNo, columns) {
+    if (record.length !== width)
+      return { err: `line ${lineNo}: expected ${width} columns, got ${record.length}` };
+    const r = Object.fromEntries(columns.map(k => [k, record[at[k]].trim()]));
     if (!r.category) return { err: `line ${lineNo}: missing category` };
-    for (const k of ['target', ...GENDERS]) {
+    for (const k of columns.filter(c => c !== 'category')) {
       if (!/^\d+$/.test(r[k])) return { err: `line ${lineNo}: ${k} must be a whole number, got "${r[k]}"` };
       r[k] = Number(r[k]);
     }
@@ -377,8 +422,14 @@
     return { row: r };
   }
 
-  function build(csvText) {
-    const parsed = parseCSV(csvText ?? '').slice(1).map((r, i) => toRow(r, i + 2));
+  function build(csvText, columns) {
+    const [header = [], ...records] = parseCSV(csvText ?? '');
+    const names = header.map(h => h.trim().toLowerCase());
+    const missing = columns.filter(c => !names.includes(c));
+    if (missing.length)
+      return { rows: [], errors: [`the header row is missing the ${missing.join(', ')} column${missing.length === 1 ? '' : 's'}`] };
+    const at = Object.fromEntries(columns.map(c => [c, names.indexOf(c)]));
+    const parsed = records.map((r, i) => toRow(r, at, header.length, i + 2, columns));
     return {
       rows: parsed.filter(p => p.row).map(p => p.row),
       errors: parsed.filter(p => p.err).map(p => p.err),
@@ -401,80 +452,84 @@
 
   const breakdown = r => GENDERS.map(g => `${fmt(r[g])} ${g}`).join(', ');
 
-  function render(rows, errors, sourceName, note) {
-  document.getElementById('progress-list').innerHTML = rows.map(r => {
-    const done = sum(r);
-    return `
-    <div class="progress-item">
-      <div class="plabel">
-        <span>${esc(r.category)}
-          <small>${GENDERS.map(g => `${fmt(r[g])} ${g}`).join(' · ')}</small></span>
-        <b>${fmt(done)}</b>
-      </div>
-      <div class="pbar${done ? '' : ' is-empty'}"
-           role="img" aria-label="${done
-             ? `${esc(r.category)}: ${fmt(done)} trained—${breakdown(r)}`
-             : `${esc(r.category)}: no completions recorded yet`}">
-        ${done ? segments(r, done) : ''}
-      </div>
-    </div>`;
-  }).join('');
+  function render(panel, rows, errors, sourceName, note) {
+    document.getElementById(panel.listId).innerHTML = rows.map(r => {
+      const done = sum(r);
+      return `
+      <div class="progress-item">
+        <div class="plabel">
+          <span>${esc(r.category)}
+            <small>${GENDERS.map(g => `${fmt(r[g])} ${g}`).join(' · ')}</small></span>
+          <b>${fmt(done)}</b>
+        </div>
+        <div class="pbar${done ? '' : ' is-empty'}"
+             role="img" aria-label="${done
+               ? `${esc(r.category)}: ${fmt(done)} ${panel.noun}—${breakdown(r)}`
+               : `${esc(r.category)}: none recorded yet`}">
+          ${done ? segments(r, done) : ''}
+        </div>
+      </div>`;
+    }).join('');
 
-  if (rows.length) {
-    const done = rows.reduce((s, r) => s + sum(r), 0);
-    const target = rows.reduce((s, r) => s + r.target, 0);
-    const all = Object.fromEntries(GENDERS.map(g => [g, rows.reduce((s, r) => s + r[g], 0)]));
-    const share = (done / target) * 100;
-    document.getElementById('progress-total').innerHTML = `
-      <div class="plabel">
-        <span>All<small>${GENDERS.map(g => `${fmt(all[g])} ${g}`).join(' · ')}</small></span>
-        <b>${fmt(done)} / ${fmt(target)}</b>
-      </div>
-      <div class="pbar total${done ? '' : ' is-empty'}"
-           role="img" aria-label="${fmt(done)} of ${fmt(target)} beneficiaries trained${done ? `—${breakdown(all)}` : ''}">
-        ${done ? segments(all, target) : ''}
-      </div>
-      <p class="progress-pct">${share < 0.1 && done > 0 ? '<0.1' : share.toFixed(1)}%
-         of the ${fmt(target)} target</p>`;
+    if (rows.length) {
+      const done = rows.reduce((s, r) => s + sum(r), 0);
+      const all = Object.fromEntries(GENDERS.map(g => [g, rows.reduce((s, r) => s + r[g], 0)]));
+      const hasTarget = panel.columns.includes('target');
+      const target = hasTarget ? rows.reduce((s, r) => s + r.target, 0) : done;
+      const share = (done / target) * 100;
+      document.getElementById(panel.totalId).innerHTML = `
+        <div class="plabel">
+          <span>All<small>${GENDERS.map(g => `${fmt(all[g])} ${g}`).join(' · ')}</small></span>
+          <b>${hasTarget ? `${fmt(done)} / ${fmt(target)}` : fmt(done)}</b>
+        </div>
+        <div class="pbar total${done ? '' : ' is-empty'}"
+             role="img" aria-label="${hasTarget
+               ? `${fmt(done)} of ${fmt(target)} beneficiaries ${panel.noun}`
+               : `${fmt(done)} ${panel.noun}`}${done ? `—${breakdown(all)}` : ''}">
+          ${done ? segments(all, target) : ''}
+        </div>
+        ${hasTarget ? `<p class="progress-pct">${share < 0.1 && done > 0 ? '<0.1' : share.toFixed(1)}%
+           of the ${fmt(target)} target</p>` : ''}`;
+    }
+
+    const problems = [];
+    if (note) problems.push(note);
+    if (errors.length)
+      problems.push(`${errors.length} row${errors.length === 1 ? '' : 's'} in ${sourceName} could not be read and ${errors.length === 1 ? 'is' : 'are'} not shown—${errors.join('; ')}.`);
+    if (problems.length) {
+      const el = document.getElementById(panel.errorId);
+      el.hidden = false;
+      el.textContent = problems.join(' ');
+    }
   }
 
-  const problems = [];
-  if (note) problems.push(note);
-  if (errors.length)
-    problems.push(`${errors.length} row${errors.length === 1 ? '' : 's'} in ${sourceName} could not be read and ${errors.length === 1 ? 'is' : 'are'} not shown—${errors.join('; ')}.`);
-  if (problems.length) {
-    const el = document.getElementById('progress-error');
-    el.hidden = false;
-    el.textContent = problems.join(' ');
-  }
-  }
-
-  const localSource = () => ({ csv: window.PROGRESS_CSV, name: 'progress.js', note: '' });
-
-  // 'sheet' reads the published Google Sheet; anything else reads progress.js.
-  // Every sheet failure mode—unreachable, non-200, or a response with no valid
-  // rows—falls back to the local CSV with a visible note, so the panel never
-  // renders empty and never shows stale numbers silently.
-  async function loadSource() {
-    if (window.PROGRESS_SOURCE !== 'sheet') return localSource();
+  // 'sheet' reads the published Google Sheet; anything else reads the local
+  // data file. Every sheet failure mode—unreachable, non-200, or a response
+  // with no valid rows—falls back to the local CSV with a visible note, so a
+  // panel never renders empty and never shows stale numbers silently.
+  async function loadSource(panel) {
+    const local = () => ({ csv: panel.localCsv(), name: panel.localName, note: '' });
+    if (panel.source() !== 'sheet') return local();
     try {
-      const res = await fetch(window.PROGRESS_SHEET_URL);
+      const res = await fetch(panel.sheetUrl());
       if (!res.ok) throw new Error(`HTTP ${res.status}`);
-      return { csv: await res.text(), name: 'the progress sheet', note: '' };
+      return { csv: await res.text(), name: panel.sheetLabel, note: '' };
     } catch {
-      return { ...localSource(), note: 'The live progress sheet could not be reached—showing the last published numbers instead.' };
+      return { ...local(), note: `The live ${panel.sheetLabel.replace(/^the /, '')} could not be reached—showing the last published numbers instead.` };
     }
   }
 
-  loadSource().then(({ csv, name, note }) => {
-    let { rows, errors } = build(csv);
-    if (!rows.length && name !== 'progress.js') {
-      ({ rows, errors } = build(window.PROGRESS_CSV));
-      name = 'progress.js';
-      note = 'The live progress sheet had no readable rows—showing the last published numbers instead.';
-    }
-    render(rows, errors, name, note);
-  });
+  for (const panel of PANELS) {
+    loadSource(panel).then(({ csv, name, note }) => {
+      let { rows, errors } = build(csv, panel.columns);
+      if (!rows.length && name !== panel.localName) {
+        ({ rows, errors } = build(panel.localCsv(), panel.columns));
+        name = panel.localName;
+        note = `The live ${panel.sheetLabel.replace(/^the /, '')} had no readable rows—showing the last published numbers instead.`;
+      }
+      render(panel, rows, errors, name, note);
+    });
+  }
 })();
 </script>
 
