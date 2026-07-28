@@ -517,13 +517,19 @@
     }
   }
 
+  // A sheet response where every count is zero is Google serving a snapshot
+  // caught mid-recalculation, not real data: counts never regress to zero
+  // once the programme is under way. Only sheet data is second-guessed this
+  // way—zeros written deliberately into the local file still render.
+  const allZero = rows => rows.length > 0 && rows.every(r => sum(r) === 0);
+
   for (const panel of PANELS) {
     loadSource(panel).then(({ csv, name, note }) => {
       let { rows, errors } = build(csv, panel.columns);
-      if (!rows.length && name !== panel.localName) {
+      if ((!rows.length || allZero(rows)) && name !== panel.localName) {
         ({ rows, errors } = build(panel.localCsv(), panel.columns));
         name = panel.localName;
-        note = `The live ${panel.sheetLabel.replace(/^the /, '')} had no readable rows—showing the last published numbers instead.`;
+        note = `The live ${panel.sheetLabel.replace(/^the /, '')} had no usable data—showing the last published numbers instead.`;
       }
       render(panel, rows, errors, name, note);
     });
