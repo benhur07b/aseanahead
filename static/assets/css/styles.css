@@ -423,6 +423,18 @@ a.card:hover {
 }
 .chip-neutral { background: var(--ink-soft); }
 
+/* Standalone chip rows (section meta outside cards) — same pill look as .card .chip */
+.chip-row { display: flex; gap: 0.5rem; flex-wrap: wrap; margin-bottom: 1.2rem; }
+.chip-row .chip {
+  font-size: 0.68rem;
+  font-weight: 600;
+  letter-spacing: 0.16em;
+  text-transform: uppercase;
+  color: #fff;
+  border-radius: 999px;
+  padding: 0.25rem 0.75rem;
+}
+
 .card h3 { font-size: 1.3rem; color: var(--blue-deep); }
 
 .card p { color: var(--ink-soft); font-size: 0.95rem; }
