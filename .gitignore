@@ -34,3 +34,7 @@ pdf-build/combined.html
 ._*
 Thumbs.db
 desktop.ini
+
+# drafts
+*drafts/
+*drafts/*
