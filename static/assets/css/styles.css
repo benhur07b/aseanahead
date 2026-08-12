@@ -1187,10 +1187,10 @@ details.faq-item .tag {
 }
 .story-meta { font-size: 0.8rem; color: var(--ink-soft); }
 
-/* Per-audience support line at the end of each FAQ block */
+/* Per-audience support line leading each FAQ block */
 .faq-support {
-  margin: 0.6rem 0 1.8rem;
-  font-size: 0.9rem;
+  margin: 1.3rem 0 0.6rem;
+  font-size: 0.8rem;
   color: var(--ink-soft);
 }
 .faq-support a { color: inherit; }
