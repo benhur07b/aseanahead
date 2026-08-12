@@ -1186,3 +1186,11 @@ details.faq-item .tag {
   border-radius: calc(var(--radius) - 1.5px) calc(var(--radius) - 1.5px) 0 0;
 }
 .story-meta { font-size: 0.8rem; color: var(--ink-soft); }
+
+/* Per-audience support line at the end of each FAQ block */
+.faq-support {
+  margin: 0.6rem 0 1.8rem;
+  font-size: 0.9rem;
+  color: var(--ink-soft);
+}
+.faq-support a { color: inherit; }
