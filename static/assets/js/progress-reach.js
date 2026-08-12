@@ -28,8 +28,8 @@ window.REACH_SOURCE = 'sheet';
 window.REACH_SHEET_URL = 'https://docs.google.com/spreadsheets/d/e/2PACX-1vQyzECunprHBFcHi_Xsd64BwXchQlMTJT0IAbZXcMHPPtLgIY5Vh6eHzrg_r9gLohc1-9qqvnmoGNOc/pub?gid=1472833579&single=true&output=csv';
 
 window.REACH_CSV = `category,female,male,others
-University Students,158,136,9
-TVET Students,0,2,0
-NEET Youth,20,18,1
-Other Youth,5,10,2
+University Students,359,377,17
+TVET Students,3,6,0
+NEET Youth,85,77,3
+Other Youth,72,94,6
 `;

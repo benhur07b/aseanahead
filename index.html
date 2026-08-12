@@ -363,12 +363,14 @@
 (() => {
   const GENDERS = ['female', 'male', 'others'];   // as collected in the assessments
 
-  // Each panel is the same machinery over a different CSV shape. `target`
-  // present means the panel measures progress toward a committed number;
-  // absent means it only reports composition, so no target maths ever runs.
+  // Each panel is the same machinery over a different CSV shape. `target` is
+  // a page-level constant, not a CSV column: present means the panel measures
+  // progress toward that committed number; absent means it only reports
+  // composition, so no target maths ever runs.
   const PANELS = [
     {
-      columns: ['category', 'target', 'female', 'male', 'others'],
+      columns: ['category', 'female', 'male', 'others'],
+      target: 4500,   // committed Philippine programme target—keep the prose in this section in step
       listId: 'progress-list', totalId: 'progress-total', errorId: 'progress-error',
       noun: 'trained',
       localName: 'progress.js',
@@ -418,7 +420,6 @@
       if (!/^\d+$/.test(r[k])) return { err: `line ${lineNo}: ${k} must be a whole number, got "${r[k]}"` };
       r[k] = Number(r[k]);
     }
-    if (r.target === 0) return { err: `line ${lineNo}: target must be greater than 0` };
     return { row: r };
   }
 
@@ -474,8 +475,8 @@
     if (rows.length) {
       const done = rows.reduce((s, r) => s + sum(r), 0);
       const all = Object.fromEntries(GENDERS.map(g => [g, rows.reduce((s, r) => s + r[g], 0)]));
-      const hasTarget = panel.columns.includes('target');
-      const target = hasTarget ? rows.reduce((s, r) => s + r.target, 0) : done;
+      const hasTarget = panel.target !== undefined;
+      const target = hasTarget ? panel.target : done;
       const share = (done / target) * 100;
       document.getElementById(panel.totalId).innerHTML = `
         <div class="plabel">
