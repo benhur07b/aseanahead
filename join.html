@@ -357,10 +357,18 @@
   wireFilters('when-filters', 'when');
 
   // Deep links from other pages, e.g. index.html's "Ways to join" cards:
-  // join.html#Webinar preselects that modality. Only the filter values that
-  // actually exist as buttons can be selected, so a stale hash is a no-op.
+  // join.html#Webinar preselects that modality, and #upcoming/#past/#all-dates
+  // preselect a time filter ('all-dates' avoids the '#all' modality collision).
+  // Tokens combine with '+', e.g. join.html#Self-paced+all-dates. Only the
+  // filter values that actually exist as buttons can be selected, so a stale
+  // hash is a no-op.
+  const WHEN_HASHES = { upcoming: 'upcoming', past: 'past', 'all-dates': 'all' };
   const applyHash = () => {
-    if (selectFilter('modality-filters', 'modality', decodeURIComponent(location.hash.slice(1)))) render();
+    const applied = decodeURIComponent(location.hash.slice(1)).split('+')
+      .filter(token =>
+        selectFilter('modality-filters', 'modality', token) ||
+        (token in WHEN_HASHES && selectFilter('when-filters', 'when', WHEN_HASHES[token])));
+    if (applied.length) render();
   };
   window.addEventListener('hashchange', applyHash);
 
