@@ -32,11 +32,11 @@ window.REACH_DATA_URL = 'https://raw.githubusercontent.com/benhur07b/aseanahead-
 
 // UTC time the CSV below last changed—maintained by aseanahead-data's
 // site-sync.py alongside the CSV itself; don't edit one without the other.
-window.REACH_UPDATED = '2026-08-12T12:12:36Z';
+window.REACH_UPDATED = '2026-08-12T17:27:20Z';
 
 window.REACH_CSV = `category,female,male,others
-University Students,362,380,17
+University Students,373,389,17
 TVET Students,3,6,0
-NEET Youth,87,79,3
-Other Youth,72,96,6
+NEET Youth,93,81,3
+Other Youth,77,99,6
 `;

@@ -379,55 +379,47 @@
     render();
   });
 
-  const localSource = () => ({ csv: window.EVENTS_CSV ?? '', name: 'events.js', note: '' });
-
-  // 'sheet' reads the published Google Sheet; anything else reads events.js.
-  // Every sheet failure mode—unreachable, non-200, or a response with no valid
-  // rows—falls back to the local CSV with a visible note, so the schedule never
-  // renders empty and never shows stale events silently.
-  async function loadSource() {
-    if (window.EVENTS_SOURCE !== 'sheet') return localSource();
-    try {
-      const res = await fetch(window.EVENTS_SHEET_URL);
-      if (!res.ok) throw new Error(`HTTP ${res.status}`);
-      return { csv: await res.text(), name: 'the events sheet', note: '' };
-    } catch {
-      return { ...localSource(), note: 'The live events sheet could not be reached—showing the last published schedule instead.' };
-    }
-  }
-
-  loadSource().then(({ csv, name, note }) => {
-    let built = buildEvents(csv);
-    if (!built.events.length && name !== 'events.js') {
-      built = buildEvents(window.EVENTS_CSV ?? '');
-      name = 'events.js';
-      note = 'The live events sheet had no readable rows—showing the last published schedule instead.';
-    }
+  // Show a source's events: the list itself, the self-paced Register button
+  // (generated from the Self-paced row so the link lives in exactly one
+  // place), and any row errors. Filter state survives repaints untouched.
+  function show(built, name) {
     events = built.events;
 
-    // The self-paced section's Register button comes from the Self-paced row in
-    // the event data, so the link lives in exactly one place.
     const selfPaced = events.findLast(e => e.modality === 'Self-paced' && e.register_url);
-    if (selfPaced) {
-      const cta = document.getElementById('selfpaced-cta');
-      cta.hidden = false;
-      cta.innerHTML = `<a class="btn btn-primary" href="${esc(selfPaced.register_url)}"
-        target="_blank" rel="noopener">Register for the self-paced track</a>`;
-    }
+    const cta = document.getElementById('selfpaced-cta');
+    cta.hidden = !selfPaced;
+    cta.innerHTML = selfPaced ? `<a class="btn btn-primary" href="${esc(selfPaced.register_url)}"
+      target="_blank" rel="noopener">Register for the self-paced track</a>` : '';
 
-    const problems = [];
-    if (note) problems.push(note);
-    if (built.errors.length)
-      problems.push(`${built.errors.length} event entr${built.errors.length === 1 ? 'y' : 'ies'} in ${name} could not be read and ${built.errors.length === 1 ? 'is' : 'are'} not shown—${built.errors.join('; ')}.`);
-    if (problems.length) {
-      const el = document.getElementById('event-error');
-      el.hidden = false;
-      el.textContent = problems.join(' ');
-    }
+    const el = document.getElementById('event-error');
+    el.hidden = !built.errors.length;
+    el.textContent = built.errors.length
+      ? `${built.errors.length} event entr${built.errors.length === 1 ? 'y' : 'ies'} in ${name} could not be read and ${built.errors.length === 1 ? 'is' : 'are'} not shown—${built.errors.join('; ')}.`
+      : '';
 
-    applyHash();
     render();
-  });
+  }
+
+  // The bundled CSV paints synchronously, so the schedule is never blank; the
+  // data repo's usually fresher copy (kept at most ~20 minutes behind the
+  // source sheet) then repaints over it. That async writer renders only
+  // validated data, so a failed or unusable response never clears the
+  // schedule already on screen.
+  show(buildEvents(window.EVENTS_CSV ?? ''), 'events.js');
+  applyHash();
+  if (window.EVENTS_SOURCE === 'repo') {
+    (async () => {
+      const res = await fetch(window.EVENTS_DATA_URL);
+      if (!res.ok) throw new Error(`HTTP ${res.status}`);
+      const built = buildEvents(await res.text());
+      if (!built.events.length) throw new Error('no usable data');
+      show(built, 'the events data');
+    })().catch(() => {
+      const el = document.getElementById('event-error');
+      el.textContent = [el.textContent, 'The live events data could not be loaded—showing the schedule last published on this site.'].filter(Boolean).join(' ');
+      el.hidden = false;
+    });
+  }
 })();
 </script>
 

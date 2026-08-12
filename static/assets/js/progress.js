@@ -32,11 +32,11 @@ window.PROGRESS_DATA_URL = 'https://raw.githubusercontent.com/benhur07b/aseanahe
 
 // UTC time the CSV below last changed—maintained by aseanahead-data's
 // site-sync.py alongside the CSV itself; don't edit one without the other.
-window.PROGRESS_UPDATED = '2026-08-12T12:12:36Z';
+window.PROGRESS_UPDATED = '2026-08-12T17:27:20Z';
 
 window.PROGRESS_CSV = `category,female,male,others
-University Students,112,143,3
+University Students,118,147,3
 TVET Students,0,3,0
-NEET Youth,17,24,0
-Other Youth,16,28,9
+NEET Youth,19,26,0
+Other Youth,17,28,9
 `;

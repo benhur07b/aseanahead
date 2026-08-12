@@ -2,14 +2,17 @@
  * ASEAN AHEAD — event schedule data.
  *
  * EVENTS_SOURCE picks where the events page reads its schedule:
- *   'sheet' — the published Google Sheet CSV at EVENTS_SHEET_URL (live);
- *             if the sheet can't be fetched or contains no valid rows, the
- *             page falls back to the CSV below and says so on the page.
+ *   'repo'  — the CSV at EVENTS_DATA_URL, published by the aseanahead-data
+ *             repo, which syncs it from the source sheet every 15 minutes;
+ *             if it can't be fetched or has no valid rows, the page keeps
+ *             the CSV below and says so on the page.
  *   'local' — the CSV between the backticks below (this file only).
- * Keep the CSV below current even while on 'sheet': it is the fallback, and
- * the columns of both sources are identical.
+ * The page always paints the CSV below first and swaps in the repo data when
+ * it arrives, so keep it current even while on 'repo': run aseanahead-data's
+ * site-sync.py after a schedule change (it also maintains EVENTS_UPDATED;
+ * edit either by hand only together with the other).
  *
- * Edit ONLY the CSV between the backticks. One event per line.
+ * The CSV holds one event per line.
  * Columns are matched by header name, so their order doesn't matter and extra
  * columns (e.g. a bookkeeping id) are ignored. The page needs:
  *   date,time,title,modality,venue,city,host,register_url,notes
@@ -21,9 +24,15 @@
  *   - wrap a field in double quotes if it contains a comma
  */
 
-window.EVENTS_SOURCE = 'sheet';
-window.EVENTS_SHEET_URL = 'https://docs.google.com/spreadsheets/d/e/2PACX-1vTb9QKPZR9UqYA1cAI-MVZsvQAE4ybnLR4KvfVHtLtRDE3-ZFJa0Rl0mTJk_nb32cRP2hlxEdq4gStj/pub?gid=0&single=true&output=csv';
+window.EVENTS_SOURCE = 'repo';
+window.EVENTS_DATA_URL = 'https://raw.githubusercontent.com/benhur07b/aseanahead-data/main/events.csv';
 
-window.EVENTS_CSV = `id,date,time,title,modality,venue,city,host,register_url,notes
-46387_Self-paced_Online_SmartCT,2026-12-31,Anytime,Self-Paced Track — AI Career Readiness,Self-paced,ADA platform,Online,SmartCT,https://ada.aseanfoundation.org/course-detail/ai-career-readiness,Start and finish whenever you're ready. Expect regular check-ins from our champions.
-46235_Webinar_Online_SmartCT,2026-08-01,9:00 AM - 11:00 AM,AI Ready Mentoring Session 6 - Intro to ASEAN AHEAD,Webinar,Zoom,Online,SmartCT,https://forms.gle/fTezLnskPRtw7JeBA,Exclusive for AI Ready ASEAN Master Trainers and Institutional Partners`;
+// UTC time the CSV below last changed—maintained by aseanahead-data's
+// site-sync.py alongside the CSV itself; don't edit one without the other.
+window.EVENTS_UPDATED = '2026-08-12T17:27:20Z';
+
+window.EVENTS_CSV = `date,time,title,modality,venue,city,host,register_url,notes
+2026-12-31,Anytime,Self-Paced Track — AI Career Readiness,Self-paced,ADA Platform,Online,SmartCT,https://ada.aseanfoundation.org/course-detail/ai-career-readiness,Start and finish whenever you're ready. Expect regular check-ins from our champions.
+2026-08-01,9:00 AM - 11:00 AM,AI Ready Mentoring Session 6 - Intro to ASEAN AHEAD,Webinar,Zoom,Online,SmartCT,https://forms.gle/fTezLnskPRtw7JeBA,Exclusive for AI Ready ASEAN Master Trainers and Institutional Partners
+2026-08-18,1:00 PM - 4:00 PM,AI Career Readiness Training,Hybrid,Iligan City / Zoom,"CDIIS, Iligan City","Center for Digital Iligan, Innovation and Sustainability (CDIIS) | MSU-IIT | SmartCT",,By invitation
+`;
