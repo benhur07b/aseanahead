@@ -1176,3 +1176,13 @@ details.faq-item .tag {
 }
 
 .progress-fine.err { color: var(--red); font-weight: 600; }
+
+/* Story cards (stories.html) — a .card with a photo bleeding to its edges */
+.story-thumb {
+  width: calc(100% + 3rem);
+  margin: -1.6rem -1.5rem 0;
+  aspect-ratio: 3 / 2;
+  object-fit: cover;
+  border-radius: calc(var(--radius) - 1.5px) calc(var(--radius) - 1.5px) 0 0;
+}
+.story-meta { font-size: 0.8rem; color: var(--ink-soft); }
