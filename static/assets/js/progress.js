@@ -27,9 +27,13 @@
 window.PROGRESS_SOURCE = 'sheet';
 window.PROGRESS_SHEET_URL = 'https://docs.google.com/spreadsheets/d/e/2PACX-1vQyzECunprHBFcHi_Xsd64BwXchQlMTJT0IAbZXcMHPPtLgIY5Vh6eHzrg_r9gLohc1-9qqvnmoGNOc/pub?gid=0&single=true&output=csv';
 
+// UTC time the CSV below last changed—maintained by aseanahead-data's
+// site-sync.py alongside the CSV itself; don't edit one without the other.
+window.PROGRESS_UPDATED = '2026-08-12T11:40:52Z';
+
 window.PROGRESS_CSV = `category,female,male,others
-University Students,111,141,3
+University Students,111,142,3
 TVET Students,0,3,0
-NEET Youth,17,23,0
+NEET Youth,17,24,0
 Other Youth,16,27,9
 `;

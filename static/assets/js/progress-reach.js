@@ -27,9 +27,13 @@
 window.REACH_SOURCE = 'sheet';
 window.REACH_SHEET_URL = 'https://docs.google.com/spreadsheets/d/e/2PACX-1vQyzECunprHBFcHi_Xsd64BwXchQlMTJT0IAbZXcMHPPtLgIY5Vh6eHzrg_r9gLohc1-9qqvnmoGNOc/pub?gid=1472833579&single=true&output=csv';
 
+// UTC time the CSV below last changed—maintained by aseanahead-data's
+// site-sync.py alongside the CSV itself; don't edit one without the other.
+window.REACH_UPDATED = '2026-08-12T11:19:26Z';
+
 window.REACH_CSV = `category,female,male,others
-University Students,359,377,17
+University Students,359,378,17
 TVET Students,3,6,0
-NEET Youth,85,77,3
+NEET Youth,85,78,3
 Other Youth,72,94,6
 `;
