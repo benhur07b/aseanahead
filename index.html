@@ -262,6 +262,7 @@
             regularly. Gender options match the pre- and post-course assessments, where
             <em>others</em> covers non-binary and "rather not say" responses.
           </p>
+          <p class="progress-fine" id="progress-asof" hidden></p>
           <p class="progress-fine err" id="progress-error" hidden></p>
         </div>
         <div class="callout gold">
@@ -286,6 +287,7 @@
             completions. Bars show the gender split within each category and
             across <em>All course takers</em>.
           </p>
+          <p class="progress-fine" id="reach-asof" hidden></p>
           <p class="progress-fine err" id="reach-error" hidden></p>
         </div>
         <div class="callout teal">
@@ -371,21 +373,23 @@
     {
       columns: ['category', 'female', 'male', 'others'],
       target: 4500,   // committed Philippine programme target—keep the prose in this section in step
-      listId: 'progress-list', totalId: 'progress-total', errorId: 'progress-error',
+      listId: 'progress-list', totalId: 'progress-total',
+      errorId: 'progress-error', asofId: 'progress-asof',
       noun: 'trained',
       localName: 'progress.js',
-      source: () => window.PROGRESS_SOURCE, sheetUrl: () => window.PROGRESS_SHEET_URL,
-      localCsv: () => window.PROGRESS_CSV,
-      sheetLabel: 'the progress sheet',
+      source: () => window.PROGRESS_SOURCE, dataUrl: () => window.PROGRESS_DATA_URL,
+      localCsv: () => window.PROGRESS_CSV, updated: () => window.PROGRESS_UPDATED,
+      repoLabel: 'the progress data',
     },
     {
       columns: ['category', 'female', 'male', 'others'],
-      listId: 'reach-list', totalId: 'reach-total', errorId: 'reach-error',
+      listId: 'reach-list', totalId: 'reach-total',
+      errorId: 'reach-error', asofId: 'reach-asof',
       noun: 'course takers',
       localName: 'progress-reach.js',
-      source: () => window.REACH_SOURCE, sheetUrl: () => window.REACH_SHEET_URL,
-      localCsv: () => window.REACH_CSV,
-      sheetLabel: 'the course-takers sheet',
+      source: () => window.REACH_SOURCE, dataUrl: () => window.REACH_DATA_URL,
+      localCsv: () => window.REACH_CSV, updated: () => window.REACH_UPDATED,
+      repoLabel: 'the course-takers data',
     },
   ];
 
@@ -497,44 +501,73 @@
     if (note) problems.push(note);
     if (errors.length)
       problems.push(`${errors.length} row${errors.length === 1 ? '' : 's'} in ${sourceName} could not be read and ${errors.length === 1 ? 'is' : 'are'} not shown—${errors.join('; ')}.`);
-    if (problems.length) {
-      const el = document.getElementById(panel.errorId);
-      el.hidden = false;
-      el.textContent = problems.join(' ');
-    }
+    const el = document.getElementById(panel.errorId);
+    el.hidden = !problems.length;
+    el.textContent = problems.join(' ');
   }
 
-  // 'sheet' reads the published Google Sheet; anything else reads the local
-  // data file. Every sheet failure mode—unreachable, non-200, or a response
-  // with no valid rows—falls back to the local CSV with a visible note, so a
-  // panel never renders empty and never shows stale numbers silently.
-  async function loadSource(panel) {
-    const local = () => ({ csv: panel.localCsv(), name: panel.localName, note: '' });
-    if (panel.source() !== 'sheet') return local();
-    try {
-      const res = await fetch(panel.sheetUrl());
-      if (!res.ok) throw new Error(`HTTP ${res.status}`);
-      return { csv: await res.text(), name: panel.sheetLabel, note: '' };
-    } catch {
-      return { ...local(), note: `The live ${panel.sheetLabel.replace(/^the /, '')} could not be reached—showing the last published numbers instead.` };
-    }
+  // The freshness line: date plus the hour, in the viewer's timezone. Minutes
+  // are deliberately not shown—the data refreshes on a cadence, so anything
+  // finer would be false precision. No stamp, no line: better silent than a
+  // made-up date.
+  function stampText(iso) {
+    const d = new Date(iso ?? '');
+    if (isNaN(d)) return '';
+    const opts = { day: 'numeric', month: 'short', year: 'numeric', hour: 'numeric' };
+    try { return d.toLocaleString('en-PH', { ...opts, timeZoneName: 'shortOffset' }); }
+    catch { return d.toLocaleString('en-PH', { ...opts, timeZoneName: 'short' }); }
   }
 
-  // A sheet response where every count is zero is Google serving a snapshot
-  // caught mid-recalculation, not real data: counts never regress to zero
-  // once the programme is under way. Only sheet data is second-guessed this
-  // way—zeros written deliberately into the local file still render.
+  function setStamp(panel, iso) {
+    const el = document.getElementById(panel.asofId);
+    const text = stampText(iso);
+    el.hidden = !text;
+    el.textContent = text && `Data as of ${text}.`;
+  }
+
+  // meta.json (filename → UTC time that file's contents last changed) is
+  // shared by every CSV in the data repo, so it is fetched once per repo and
+  // its absence only costs the date line, never the numbers.
+  const metaByDir = new Map();
+  function metaFor(csvUrl) {
+    const dir = csvUrl.slice(0, csvUrl.lastIndexOf('/') + 1);
+    if (!metaByDir.has(dir))
+      metaByDir.set(dir, fetch(dir + 'meta.json').then(r => r.ok ? r.json() : null).catch(() => null));
+    return metaByDir.get(dir);
+  }
+
+  // An all-zero response is a serving glitch, not real data: counts never
+  // regress to zero once the programme is under way. The data repo validates
+  // against this before publishing, but the check is kept here as the last
+  // line—zeros written deliberately into the local file still render.
   const allZero = rows => rows.length > 0 && rows.every(r => sum(r) === 0);
 
+  // Fetch the panel's CSV from the data repo (kept at most ~20 minutes
+  // behind the source sheet) and repaint. Any failure—unreachable, non-200,
+  // no valid rows—throws to the caller; the numbers already on screen stay.
+  async function loadRepo(panel) {
+    const res = await fetch(panel.dataUrl());
+    if (!res.ok) throw new Error(`HTTP ${res.status}`);
+    const { rows, errors } = build(await res.text(), panel.columns);
+    if (!rows.length || allZero(rows)) throw new Error('no usable data');
+    render(panel, rows, errors, panel.repoLabel, '');
+    const meta = await metaFor(panel.dataUrl());
+    setStamp(panel, meta?.[panel.dataUrl().split('/').pop()] ?? panel.updated());
+  }
+
+  // The bundled CSV paints synchronously, so the panels are never blank; the
+  // data repo's usually fresher copy then repaints over it. That async writer
+  // renders only validated data and nothing renders after it, so a stale
+  // source can never overwrite a fresher one.
   for (const panel of PANELS) {
-    loadSource(panel).then(({ csv, name, note }) => {
-      let { rows, errors } = build(csv, panel.columns);
-      if ((!rows.length || allZero(rows)) && name !== panel.localName) {
-        ({ rows, errors } = build(panel.localCsv(), panel.columns));
-        name = panel.localName;
-        note = `The live ${panel.sheetLabel.replace(/^the /, '')} had no usable data—showing the last published numbers instead.`;
-      }
-      render(panel, rows, errors, name, note);
+    const { rows, errors } = build(panel.localCsv(), panel.columns);
+    render(panel, rows, errors, panel.localName, '');
+    setStamp(panel, panel.updated());
+    if (panel.source() !== 'repo') continue;
+    loadRepo(panel).catch(() => {
+      const el = document.getElementById(panel.errorId);
+      el.textContent = [el.textContent, `The live ${panel.repoLabel.replace(/^the /, '')} could not be loaded—showing the numbers last published on this site.`].filter(Boolean).join(' ');
+      el.hidden = false;
     });
   }
 })();
